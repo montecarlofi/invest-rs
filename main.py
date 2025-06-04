@@ -118,7 +118,8 @@ capital_R = [a + b for a, b in zip(capital_real_estate, capital_real_estate_inco
 
 # Future projection, stocks
 capital_stocks = [Capital * rate_growth**(i+1) for i in range(N)]
-realisations = geometric_series(n=N, repeating_amount = realisation_monthly, periodic_rate=rate_growth) 
+#realisations = geometric_series(n=N, repeating_amount = realisation_monthly, periodic_rate=rate_growth) 
+realisations = [realisation_monthly*(i+1) for i in range(N)]
 capital_stock_savings = geometric_series(n=N, repeating_amount=monthly_invest0, periodic_rate=rate_growth)
 capital_I = [a + b - c for a, b, c in zip(capital_stocks, capital_stock_savings, realisations)]
 
