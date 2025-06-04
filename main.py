@@ -52,6 +52,22 @@ def geometric_series(n, start_value=0, repeating_amount=0, periodic_rate=1):
 #k = geometric_series(10, 1, 0, 1.07)
 #k = geometric_series(10, 1, 0, 1.07)
 #print(k); exit()
+def geo_series(start, periodic_amount, periodic_rate, n):
+	r = periodic_rate
+	if n == 0:
+		return []
+	y = [0 for i in range(n)]
+
+	#if start == 0:
+	#	start = periodic_amount
+	y[0] = (start + periodic_amount) * periodic_rate
+
+	for i in range(1, n):
+		P = y[i-1] + periodic_amount
+		y[i] = P * periodic_rate
+
+	return y
+
 
 def compounding(start_value, n, periodic_rate):
 	y = [0 for i in range(n)]
@@ -74,7 +90,7 @@ def get_debt(i, P, n, extra=0):
 		return monthly_installments * n
 
 
-N = 480
+N = 480 * 2
 real_estate, space0, stocks, space1, display = st.columns([2, 1, 2, 1, 7])
 
 #Capital = st.sidebar.number_input('Starting capital', min_value=0, value=1, key='start_capital')
@@ -87,15 +103,15 @@ with real_estate:
 with stocks:
 	st.write('Stocks')
 	Capital0 = st.number_input('Starting capital', min_value=0, value=Capital, key='start_capital0', disabled=True)
-	monthly_invest0 = st.number_input('Monthly investments', min_value=0, value=0, key='monthly_invest0', disabled=False)
+	monthly_invest0 = st.number_input('Monthly investments', value=0, key='monthly_invest0', disabled=False)
 	percent_growth = st.slider('\\% growth stocks', min_value=-5, max_value=15, value=4, step=1, key='g_invest')
 	rate_growth = percent_growth/100 + 1
 	rate_growth = np.e**(np.log(rate_growth)/12)
-	realisation_monthly = st.number_input('Monthly take (realisation)', min_value=0, value=0, disabled=False, key='realisation_monthly')
+	realisation_monthly = 0  #st.number_input('Monthly take (realisation)', min_value=0, value=0, disabled=False, key='realisation_monthly')
 
 with stocks:
 	st.divider()
-	display_N = st.selectbox('Display months', [i for i in range(120, 481, 120)], index=1)  # + 12
+	display_N = st.selectbox('Display months', [i for i in range(120, N+1, 120)], index=1)  # + 12
 	display_N = display_N if display_N <= N else N
 
 with real_estate:
@@ -103,7 +119,7 @@ with real_estate:
 	rate_growth_IR = percent_growth_real_invest/100 + 1
 	rate_growth_IR = np.e**(np.log(rate_growth_IR)/12)
 
-	rent_income = st.number_input('Rental income', min_value=0, key='rent_income')
+	rent_income = 0 # st.number_input('Rental income', min_value=0, key='rent_income')
 	percent_growth_real_estate = st.slider('\\% growth of asset', min_value=-5, max_value=15, value=1, step=1, key="g_real_estate")
 	rate_growth_realestate = percent_growth_real_estate/100 + 1
 	rate_growth_realestate = np.e**(np.log(rate_growth_realestate)/12)
@@ -112,16 +128,21 @@ with real_estate:
 
 
 # Future projection, real estate
+saving_stocks = monthly_savings + rent_income
+capital_real_estate_incomes = geo_series(start=0, periodic_amount=saving_stocks, periodic_rate=rate_growth, n=N)
 capital_real_estate = [Capital * rate_growth_realestate**(i+1) for i in range(N)]
-capital_real_estate_incomes = geometric_series(n=N, repeating_amount=monthly_savings + rent_income, periodic_rate=rate_growth_IR)
+#capital_real_estate_incomes = geometric_series(n=N, repeating_amount=monthly_savings + rent_income, periodic_rate=rate_growth_IR)
 capital_R = [a + b for a, b in zip(capital_real_estate, capital_real_estate_incomes)]
 
 # Future projection, stocks
-capital_stocks = [Capital * rate_growth**(i+1) for i in range(N)]
-#realisations = geometric_series(n=N, repeating_amount = realisation_monthly, periodic_rate=rate_growth) 
-realisations = [realisation_monthly*(i+1) for i in range(N)]
-capital_stock_savings = geometric_series(n=N, repeating_amount=monthly_invest0, periodic_rate=rate_growth)
-capital_I = [a + b - c for a, b, c in zip(capital_stocks, capital_stock_savings, realisations)]
+saving_stocks = monthly_invest0 - realisation_monthly
+capital_I = geo_series(start=Capital, periodic_amount=saving_stocks, periodic_rate=rate_growth, n=N)
+
+#capital_stocks = [Capital * rate_growth**(i+1) for i in range(N)]
+##realisations = geometric_series(n=N, repeating_amount = realisation_monthly, periodic_rate=rate_growth) 
+#realisations = [realisation_monthly*(i+1) for i in range(N)]
+#capital_stock_savings = geometric_series(n=N, repeating_amount=monthly_invest0, periodic_rate=rate_growth)
+#capital_I = [a + b - c for a, b, c in zip(capital_stocks, capital_stock_savings, realisations)]
 
 
 with display:
